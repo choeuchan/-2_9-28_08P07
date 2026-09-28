@@ -32,36 +32,43 @@ void loop() {
 
   // wait until next sampling time. // polling
   // millis() returns the number of milliseconds since the program started.
-  //    will overflow after 50 days.
   if (millis() < (last_sampling_time + INTERVAL))
     return;
 
   distance = USS_measure(PIN_TRIG, PIN_ECHO); // read distance
 
-  // active low: analogWrite 0 = brightest, 255 = off
-  // brightest at 200mm, off at 100mm and 300mm, ~50% duty at 150mm and 250mm
-  int duty;
-  if ((distance == 0.0) || (distance > _DIST_MAX)) {
-      distance = _DIST_MAX + 10.0;    // Set Higher Value
-      duty = 255;                     // LED OFF
-  } else if (distance < _DIST_MIN) {
-      distance = _DIST_MIN - 10.0;    // Set Lower Value
-      duty = 255;                     // LED OFF
-  } else {    // In desired Range
-      // keep this in float. int (diff / 100) * 255 becomes 0
-      float diff = distance - 200.0f;
-      if (diff < 0.0f) diff = -diff;
-      float duty_f = diff * 255.0f / 100.0f;
-      duty = (int)(duty_f + 0.5f);
-      if (duty > 255) duty = 255;
+  int light;
+  if ((distance == 0.0) || (distance > _DIST_MAX))
+  {
+      distance = _DIST_MAX + 10.0;
+      light = 255;
   }
-  analogWrite(PIN_LED, duty);
+  else if (distance < _DIST_MIN)
+  {
+      distance = _DIST_MIN - 10.0;
+      light = 255;
+  } 
+  else
+  {
+      float diff = distance - 200.0f;
+      if (diff < 0.0f)
+      {
+        diff = -diff;
+      }
+      float f_light = diff * 255.0f / 100.0f;
+      light = (int)(f_light + 0.5f);
+      if (light > 255)
+      {
+        light = 255;
+      }
+  }
+  analogWrite(PIN_LED, light);
 
   // output the distance to the serial port
   Serial.print("Min:");        Serial.print(_DIST_MIN);
   Serial.print(",distance:");  Serial.print(distance);
   Serial.print(",Max:");       Serial.print(_DIST_MAX);
-  Serial.print(",duty:");      Serial.print(duty);
+  Serial.print(",light:");      Serial.print(light);
   Serial.println("");
   
   // update last sampling time
